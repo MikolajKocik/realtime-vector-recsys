@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/RecSys.Api/RecSys.Api.csproj" />
+    <Project Path="src/RecSys.Application/RecSys.Application.csproj" />
+    <Project Path="src/RecSys.Domain/RecSys.Domain.csproj" />
+    <Project Path="src/RecSys.Infrastructure/RecSys.Infrastructure.csproj" />
+  </Folder>
+</Solution>
