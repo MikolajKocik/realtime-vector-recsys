@@ -1,0 +1,12 @@
+{
+  "dotnet.defaultSolution": "RecSys.slnx",
+  "dotnet.backgroundAnalysis.analyzerDiagnosticsScope": "fullSolution",
+  "dotnet.backgroundAnalysis.compilerDiagnosticsScope": "fullSolution",
+  "csharp.inlayHints.packageDependencyVersions": true,
+  "omnisharp.enablePackageRestore": true,
+  "omnisharp.enableRoslynAnalyzers": true,
+  "msbuildProjectTools.nuget.suggestPackageVersions": true,
+  "msbuildProjectTools.nuget.autoCompleteUnloadPackage": true,
+  "nuget.packageManager": "dotnet",
+  "nugetgallery.useModernNet": true
+}
