@@ -6,6 +6,7 @@ using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using RecSys.Application.Abstractions;
 using RecSys.Application.Features.Telemetry;
+using RecSys.Infrastructure.Logging;
 
 namespace RecSys.Infrastructure.Messaging;
 
@@ -141,6 +142,7 @@ public sealed class RabbitMqInteractionEventQueue : IInteractionEventQueue, IAsy
                 var @event = JsonSerializer.Deserialize<UserInteractedEvent>(ea.Body.Span);
                 if (@event is null)
                 {
+                    _logger.LogMalformedPayload(ea.DeliveryTag);
                     await channel.BasicNackAsync(ea.DeliveryTag, multiple: false, requeue: false);
                     return;
                 }
@@ -148,8 +150,9 @@ public sealed class RabbitMqInteractionEventQueue : IInteractionEventQueue, IAsy
                 await _internalChannel.Writer.WriteAsync(@event);
                 await channel.BasicAckAsync(ea.DeliveryTag, multiple: false);
             }
-            catch (JsonException)
+            catch (JsonException ex)
             {
+                _logger.LogDeserializationError(ex, ea.DeliveryTag);
                 await channel.BasicNackAsync(ea.DeliveryTag, multiple: false, requeue: false);
             }
         };
@@ -160,6 +163,8 @@ public sealed class RabbitMqInteractionEventQueue : IInteractionEventQueue, IAsy
             consumer: consumer,
             cancellationToken: ct
         );
+
+        _logger.LogTopologyInitialized(_options.ExchangeName, _options.QueueName, _options.DlxQueueName);
     }
 
     /// <summary>
@@ -185,6 +190,8 @@ public sealed class RabbitMqInteractionEventQueue : IInteractionEventQueue, IAsy
             body: body,
             cancellationToken: ct
         );
+
+        _logger.LogEventEnqueued(@event.UserId, @event.ItemId, @event.InteractionType);
     }
 
     /// <summary>
