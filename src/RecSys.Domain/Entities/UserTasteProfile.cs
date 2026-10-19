@@ -1,3 +1,7 @@
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using Pgvector;
+
 namespace RecSys.Domain.Entities;
 
 /// <summary>
@@ -5,8 +9,11 @@ namespace RecSys.Domain.Entities;
 /// </summary>
 public sealed class UserTasteProfile
 {
+    [Key]
     public string UserId { get; init; }
-    public IReadOnlyList<float> TasteVector { get; private set; }
+
+    [Column(TypeName = "vector(3)")]
+    public Vector TasteVector { get; private set; }
     public int InteractionCount { get; private set; }
     public DateTimeOffset UpdatedAt { get; private set; }
 
@@ -23,16 +30,16 @@ public sealed class UserTasteProfile
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(userId);
         ArgumentNullException.ThrowIfNull(initialTasteVector);
-        if (initialTasteVector.Length == 0)
+        if (initialTasteVector.Length != 3)
         {
             throw new ArgumentException(
-                "Initial taste vector cannot be empty.",
+                "Vector must have exactly 3 dimensions.",
                 nameof(initialTasteVector)
             );
         }
 
         UserId = userId;
-        TasteVector = initialTasteVector;
+        TasteVector = new Vector(initialTasteVector);
         InteractionCount = 1; // first profil interaction
         UpdatedAt = DateTimeOffset.UtcNow;
     }
@@ -47,14 +54,14 @@ public sealed class UserTasteProfile
     public void UpdateTaste(float[] newTaste)
     {
         ArgumentNullException.ThrowIfNull(newTaste);
-        if (newTaste.Length == 0)
+        if (newTaste.Length != 3)
         {
             throw new ArgumentException(
-                "User taste vector cannot be empty.",
+                "Vector must have exactly 3 dimensions.",
                 nameof(newTaste)
             );
         }
-        TasteVector = newTaste;
+        TasteVector = new Vector(newTaste);
         InteractionCount++;
         UpdatedAt = DateTimeOffset.UtcNow;
     }

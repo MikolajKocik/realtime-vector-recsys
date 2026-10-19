@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations.Schema;
+using Pgvector;
 using RecSys.Domain.Enums;
 
 namespace RecSys.Domain.Entities;
@@ -11,7 +13,9 @@ public sealed class CatalogItem
     public string Title { get; private set; }
     public ItemCategory Category { get; private set; }
     public string Description { get; private set; }
-    public IReadOnlyList<float> Embedding { get; private set; }
+
+    [Column(TypeName = "vector(3)")]
+    public Vector Embedding { get; private set; }
     public int PopularityScore { get; private set; }
     public DateTimeOffset CreatedAt { get; private set; }
 
@@ -36,12 +40,15 @@ public sealed class CatalogItem
         ArgumentException.ThrowIfNullOrWhiteSpace(title);
         ArgumentException.ThrowIfNullOrWhiteSpace(description);
         ArgumentNullException.ThrowIfNull(embedding);
-        if (embedding.Length == 0)
+        if (embedding.Length != 3)
         {
-            throw new ArgumentException("Embedding vector cannot be empty.", nameof(embedding));
+            throw new ArgumentException(
+                "Vector must have exactly 3 dimensions.",
+                nameof(embedding)
+            );
         }
 
-        Embedding = embedding;
+        Embedding = new Vector(embedding);
 
         Title = title;
         Category = category;
