@@ -1,9 +1,11 @@
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
 using RecSys.Application.Abstractions;
 using RecSys.Infrastructure.Messaging;
+using RecSys.Infrastructure.Persistence;
 
 namespace RecSys.Infrastructure;
 
@@ -30,6 +32,22 @@ public static class DependencyInjection
         });
 
         services.AddSingleton<IInteractionEventQueue, RabbitMqInteractionEventQueue>();
+
+        string passwordFile = Environment.GetEnvironmentVariable("DB_PASSWORD_FILE") ?? "secrets/db_password.txt";
+        string password = File.Exists(passwordFile)
+            ? File.ReadAllText(passwordFile).Trim()
+            : configuration["Database:Password"] ?? "postgres";
+
+        string host = configuration["Database:Host"] ?? "localhost";
+        string port = configuration["Database:Port"] ?? "5432";
+        string dbName = configuration["Database:Name"] ?? "recsys";
+        string username = configuration["Database:Username"] ?? "postgres";
+
+        string connectionString = configuration.GetConnectionString("Database")
+            ?? $"Host={host};Port={port};Database={dbName};Username={username};Password={password}";
+
+        services.AddDbContext<AppDbContext>(options =>
+            options.UseNpgsql(connectionString, o => o.UseVector()));
 
         return services;
     }
