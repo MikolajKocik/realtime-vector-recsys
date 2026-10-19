@@ -6,4 +6,8 @@ public sealed record UserInteractedEvent(
     string UserId,
     string ItemId,
     InteractionType InteractionType,
-    DateTimeOffset OccurredAt);
+    DateTimeOffset OccurredAt,
+    string? CorrelationId = null,
+    string? ApiVersion = null,
+    string? UserAgent = null
+);
