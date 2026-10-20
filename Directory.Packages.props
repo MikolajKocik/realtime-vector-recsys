@@ -3,9 +3,9 @@
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
   </PropertyGroup>
-
   <ItemGroup>
     <!-- ASP.NET Core & OpenAPI -->
+    <PackageVersion Include="Dapper" Version="2.1.89" />
     <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="10.0.12" />
     <!-- Options, DI & Logging -->
     <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.0" />
@@ -15,24 +15,20 @@
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.0" />
     <!-- MediatR & CQRS -->
     <PackageVersion Include="MediatR" Version="12.4.1" />
-
     <!-- Entity Framework Core & PostgreSQL (pgvector) -->
     <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="10.0.0" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.0" />
+    <PackageVersion Include="Npgsql" Version="10.0.3" />
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.0" />
     <PackageVersion Include="Pgvector" Version="0.3.2" />
     <PackageVersion Include="Pgvector.EntityFrameworkCore" Version="0.3.0" />
-
     <!-- Caching & Redis -->
     <PackageVersion Include="StackExchange.Redis" Version="2.8.24" />
     <PackageVersion Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="10.0.0" />
-
     <!-- Messaging & Queues -->
     <PackageVersion Include="RabbitMQ.Client" Version="7.0.0" />
-
     <!-- Vector & Tensor Operations -->
     <PackageVersion Include="System.Numerics.Tensors" Version="10.0.0" />
-
     <!-- OpenTelemetry & Monitoring -->
     <PackageVersion Include="OpenTelemetry.Extensions.Hosting" Version="1.11.1" />
     <PackageVersion Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.11.0" />

@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using Npgsql;
 using RecSys.Domain.Entities;
 
 namespace RecSys.Infrastructure.Persistence;

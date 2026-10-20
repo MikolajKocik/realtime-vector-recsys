@@ -49,6 +49,8 @@ public static class DependencyInjection
         services.AddDbContext<AppDbContext>(options =>
             options.UseNpgsql(connectionString, o => o.UseVector()));
 
+        services.AddSingleton<INpgSqlProvider>(_ => new NpgsqlProvider(connectionString));
+
         return services;
     }
 }
