@@ -6,10 +6,10 @@ namespace RecSys.Domain.Entities;
 /// </summary>
 public sealed class OutboxMessage
 {
-    public string Id { get; private set; }
+    public string Id { get; init; }
     public string EventType { get; private set; }
     public string PayloadJson { get; private set; }
-    public DateTimeOffset OccurredAt { get; private set; }
+    public DateTimeOffset OccurredAt { get; init; }
     public DateTimeOffset? ProcessedAt { get; private set; }
     public string? Error { get; private set; }
 

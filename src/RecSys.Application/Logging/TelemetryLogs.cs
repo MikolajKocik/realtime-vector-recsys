@@ -25,4 +25,16 @@ internal static partial class TelemetryLogs
         Level = LogLevel.Information,
         Message = "TrackInteraction accepted: User '{UserId}' interacted with Item '{ItemId}', Type: {InteractionType}.")]
     public static partial void LogInteractionAccepted(this ILogger logger, string userId, string itemId, InteractionType interactionType);
+
+    [LoggerMessage(
+        EventId = 3004,
+        Level = LogLevel.Warning,
+        Message = "TrackInteraction rejected: Invalid interaction type '{InteractionType}'.")]
+    public static partial void LogInteractionBadRequest(this ILogger logger, InteractionType interactionType);
+
+    [LoggerMessage(
+        EventId = 3005,
+        Level = LogLevel.Warning,
+        Message = "RabbitMQ unavailable while enqueuing interaction for User '{UserId}', Item '{ItemId}'. Falling back to Outbox via Dapper.")]
+    public static partial void LogRabbitMqFallbackToOutbox(this ILogger logger, Exception exception, string userId, string itemId);
 }
