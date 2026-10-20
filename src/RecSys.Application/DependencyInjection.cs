@@ -9,6 +9,7 @@ public static class DependencyInjection
     public static IServiceCollection AddApplication(this IServiceCollection services)
     {
         services.AddSingleton<IVectorMathService, VectorMathService>();
+        services.AddSingleton<IRecommendationRanker, RecommendationRanker>();
         services.AddSingleton(TimeProvider.System);
 
         services.AddMediatR(cfg =>

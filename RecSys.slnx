@@ -5,4 +5,7 @@
     <Project Path="src/RecSys.Domain/RecSys.Domain.csproj" />
     <Project Path="src/RecSys.Infrastructure/RecSys.Infrastructure.csproj" />
   </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/RecSys.Application.Tests/RecSys.Application.Tests.csproj" />
+  </Folder>
 </Solution>
