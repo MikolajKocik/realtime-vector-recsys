@@ -4,8 +4,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
 using RecSys.Application.Abstractions;
+using RecSys.Infrastructure.Caching;
 using RecSys.Infrastructure.Messaging;
 using RecSys.Infrastructure.Persistence;
+using StackExchange.Redis;
 
 namespace RecSys.Infrastructure;
 
@@ -50,6 +52,14 @@ public static class DependencyInjection
             options.UseNpgsql(connectionString, o => o.UseVector()));
 
         services.AddSingleton<INpgSqlProvider>(_ => new NpgsqlProvider(connectionString));
+
+        services.Configure<RedisOptions>(configuration.GetSection(RedisOptions.SectionName));
+        services.AddSingleton<IConnectionMultiplexer>(sp =>
+        {
+            var opt = sp.GetRequiredService<IOptions<RedisOptions>>().Value;
+            return ConnectionMultiplexer.Connect(opt.ConnectionString);
+        });
+        services.AddSingleton<IRecommendationCacheService, RedisRecommendationCacheService>();
 
         return services;
     }
