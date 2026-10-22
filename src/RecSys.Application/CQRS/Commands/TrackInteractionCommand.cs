@@ -2,7 +2,7 @@ using MediatR;
 using RecSys.Application.Abstractions.Output;
 using RecSys.Domain.Enums;
 
-namespace RecSys.Application.Features.Telemetry;
+namespace RecSys.Application.CQRS.Commands;
 
 public sealed record TrackInteractionCommand(
     string UserId,
