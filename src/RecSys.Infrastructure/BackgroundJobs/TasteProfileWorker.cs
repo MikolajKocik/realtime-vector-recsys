@@ -18,7 +18,7 @@ public sealed class TasteProfileWorker(
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        logger.LogInformation("TasteProfileWorker started listening for interactions.");
+        logger.LogWorkerStarted();
 
         while (!stoppingToken.IsCancellationRequested)
         {
@@ -33,7 +33,7 @@ public sealed class TasteProfileWorker(
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error processing user interaction event");
+                logger.LogProcessingError(ex);
             }
         }
     }
@@ -48,7 +48,7 @@ public sealed class TasteProfileWorker(
         CatalogItem? catalogItem = await dbContext.CatalogItems.FirstOrDefaultAsync(i => i.Id == evt.ItemId, ct);
         if (catalogItem is null)
         {
-            logger.LogWarning("Catalog item {ItemId} not found for user interaction", evt.ItemId);
+            logger.LogCatalogItemNotFound(evt.ItemId);
             return;
         }
 
@@ -83,7 +83,7 @@ public sealed class TasteProfileWorker(
         catch (Exception ex)
         {
             await transaction.RollbackAsync(ct);
-            logger.LogError(ex, "Failed to update taste profile for user {UserId}", evt.UserId);
+            logger.LogProfileUpdateFailed(evt.UserId, ex);
             return;
         }
 
@@ -94,5 +94,7 @@ public sealed class TasteProfileWorker(
         {
             await cacheService.IncrementItemPopularityAsync(catalogItem.Id, boost, ct);
         }
+
+        logger.LogProfileUpdated(evt.UserId, catalogItem.Id);
     }
 }
