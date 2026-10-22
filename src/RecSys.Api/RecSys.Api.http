@@ -1,6 +1,138 @@
 @RecSys.Api_HostAddress = http://localhost:5093
+@userId = u_0192a000-0001-7000-8000-000000000001
+@topK = 5
+@itemIdElectronic = eci_0192a001-0001-7000-8000-000000000001
+@itemIdToys = eci_0192a001-0006-7000-8000-000000000006
+@itemIdGarden = eci_0192a001-0016-7000-8000-000000000016
+@correlationId = 0192a005-4f32-731a-9821-41913cbb8a21
 
-GET {{RecSys.Api_HostAddress}}/weatherforecast/
+### ============================================================================
+### OpenAPI Specification
+### ============================================================================
+
+# @name GetOpenApiSpec
+GET {{RecSys.Api_HostAddress}}/openapi/v1.json
 Accept: application/json
 
 ###
+
+### ============================================================================
+### Recommendations API
+### ============================================================================
+
+# @name GetRecommendationsWithTopK
+# Pobranie spersonalizowanych rekomendacji dla użytkownika z określonym limitem TopK
+GET {{RecSys.Api_HostAddress}}/api/v1/recommendations/{{userId}}?topK={{topK}}
+Accept: application/json
+
+###
+
+# @name GetRecommendationsDefaultTopK
+# Pobranie rekomendacji z domyślną wartością TopK (domyślnie 5)
+GET {{RecSys.Api_HostAddress}}/api/v1/recommendations/{{userId}}
+Accept: application/json
+
+###
+
+# @name GetRecommendationsHeaderVersion
+# Weryfikacja wersjonowania przez nagłówek X-Api-Version
+GET {{RecSys.Api_HostAddress}}/api/v1/recommendations/{{userId}}?topK=3
+Accept: application/json
+X-Api-Version: 1.0
+
+###
+
+# @name GetRecommendationsInvalidTopK
+# Walidacja błędu - TopK równe 0 powinno zwrócić 400 Bad Request (ProblemDetails)
+GET {{RecSys.Api_HostAddress}}/api/v1/recommendations/{{userId}}?topK=0
+Accept: application/json
+
+###
+
+### ============================================================================
+### Telemetry API (Interactions)
+### InteractionType:
+###   -1 = IgnoredRepeatedly
+###    1 = Click
+###    2 = Favorite
+###    3 = Booked
+### ============================================================================
+
+# @name TrackInteractionClick
+# Rejestracja kliknięcia w produkt (Click = 1)
+POST {{RecSys.Api_HostAddress}}/api/v1/telemetry/interaction
+Content-Type: application/json
+
+{
+  "userId": "{{userId}}",
+  "itemId": "{{itemIdElectronic}}",
+  "interactionType": 1
+}
+
+###
+
+# @name TrackInteractionFavoriteWithMetadata
+# Rejestracja polubienia (Favorite = 2) z nagłówkami korelacji i User-Agent
+POST {{RecSys.Api_HostAddress}}/api/v1/telemetry/interaction
+Content-Type: application/json
+X-Correlation-Id: {{correlationId}}
+User-Agent: RecSys-Client/1.0 (Testing)
+
+{
+  "userId": "{{userId}}",
+  "itemId": "{{itemIdToys}}",
+  "interactionType": 2
+}
+
+###
+
+# @name TrackInteractionBooked
+# Rejestracja zakupu / rezerwacji (Booked = 3)
+POST {{RecSys.Api_HostAddress}}/api/v1/telemetry/interaction
+Content-Type: application/json
+X-Correlation-Id: {{correlationId}}
+
+{
+  "userId": "{{userId}}",
+  "itemId": "{{itemIdGarden}}",
+  "interactionType": 3
+}
+
+###
+
+# @name TrackInteractionIgnored
+# Rejestracja wielokrotnego zignorowania (IgnoredRepeatedly = -1)
+POST {{RecSys.Api_HostAddress}}/api/v1/telemetry/interaction
+Content-Type: application/json
+
+{
+  "userId": "{{userId}}",
+  "itemId": "{{itemIdElectronic}}",
+  "interactionType": -1
+}
+
+###
+
+# @name TrackInteractionValidationError_EmptyUser
+# Walidacja błędu - pusty identyfikator użytkownika (oczekiwany 400 Bad Request)
+POST {{RecSys.Api_HostAddress}}/api/v1/telemetry/interaction
+Content-Type: application/json
+
+{
+  "userId": "",
+  "itemId": "{{itemIdElectronic}}",
+  "interactionType": 1
+}
+
+###
+
+# @name TrackInteractionValidationError_InvalidType
+# Walidacja błędu - nieobsługiwany typ interakcji (oczekiwany 400 Bad Request)
+POST {{RecSys.Api_HostAddress}}/api/v1/telemetry/interaction
+Content-Type: application/json
+
+{
+  "userId": "{{userId}}",
+  "itemId": "{{itemIdElectronic}}",
+  "interactionType": 999
+}
