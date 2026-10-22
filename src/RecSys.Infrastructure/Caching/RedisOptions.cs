@@ -1,5 +1,8 @@
 namespace RecSys.Infrastructure.Caching;
 
+/// <summary>
+/// Configuration options for connecting to Redis and managing recommendation cache keys.
+/// </summary>
 public sealed class RedisOptions
 {
     public const string SectionName = "Redis";

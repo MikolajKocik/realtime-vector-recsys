@@ -15,7 +15,7 @@ public class RecommendationRankerTests
         const int categoryDevOps = 2;
 
         var pythonBest = new CandidateItem(
-            Id: Guid.NewGuid(),
+            Id: Guid.NewGuid().ToString(),
             Title: "Python Basics",
             Category: categoryPython,
             CosineSimilarity: 0.90f,
@@ -23,7 +23,7 @@ public class RecommendationRankerTests
         );
 
         var pythonSecond = new CandidateItem(
-            Id: Guid.NewGuid(),
+            Id: Guid.NewGuid().ToString(),
             Title: "Python Advanced",
             Category: categoryPython,
             CosineSimilarity: 0.88f,
@@ -31,7 +31,7 @@ public class RecommendationRankerTests
         );
 
         var devopsItem = new CandidateItem(
-            Id: Guid.NewGuid(),
+            Id: Guid.NewGuid().ToString(),
             Title: "Docker Fundamentals",
             Category: categoryDevOps,
             CosineSimilarity: 0.80f,
@@ -65,7 +65,7 @@ public class RecommendationRankerTests
         // Arrange
         var candidates = Enumerable.Range(1, 10)
             .Select(i => new CandidateItem(
-                Id: Guid.NewGuid(),
+                Id: Guid.NewGuid().ToString(),
                 Title: $"Item {i}",
                 Category: i,
                 CosineSimilarity: 0.5f + (i * 0.04f),

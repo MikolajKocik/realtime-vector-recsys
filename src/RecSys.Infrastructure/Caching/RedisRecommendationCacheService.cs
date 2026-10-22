@@ -13,25 +13,20 @@ public sealed class RedisRecommendationCacheService(
     IConnectionMultiplexer redis
 ) : IRecommendationCacheService
 {
-    private readonly ILogger<RedisRecommendationCacheService> _logger = logger;
-    private readonly IOptions<RedisOptions> _options = options;
-    private readonly IConnectionMultiplexer _redis = redis;
     private readonly IDatabase _db = redis.GetDatabase();
-
     private readonly string _popularityKey = options.Value.PopularityKey;
     private readonly string _userCachePrefix = options.Value.UserCachePrefix;
     private readonly TimeSpan _defaultTtl = options.Value.DefaultCacheTtl;
 
-
-    private static bool IsEmpty(Guid id) => id == Guid.Empty;
-
-    public async Task<IReadOnlyList<RankedResult>?> GetCachedRecommendationsAsync(Guid userId, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<RankedResult>?> GetCachedRecommendationsAsync(
+        string userId,
+        CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        if (IsEmpty(userId))
+        if (string.IsNullOrWhiteSpace(userId))
         {
-            _logger.LogEmptyIdentifier();
+            logger.LogEmptyIdentifier();
             return null;
         }
 
@@ -40,40 +35,49 @@ public sealed class RedisRecommendationCacheService(
         var value = await _db.StringGetAsync(key);
         if (value.IsNullOrEmpty)
         {
-            _logger.LogCacheMiss(userId);
+            logger.LogCacheMiss(userId);
             return null;
         }
 
         try
         {
             var result = JsonSerializer.Deserialize<IReadOnlyList<RankedResult>>(value.ToString());
-            _logger.LogCacheHit(userId, result?.Count ?? 0);
+            logger.LogCacheHit(userId, result?.Count ?? 0);
             return result;
         }
         catch (JsonException ex)
         {
-            _logger.LogDeserializationFailed(userId, ex);
+            logger.LogDeserializationFailed(userId, ex);
             return null;
         }
     }
 
-    public async Task<long> GetItemPopularityAsync(Guid itemId, CancellationToken cancellationToken = default)
+    public async Task<long> GetItemPopularityAsync(
+        string itemId,
+        CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        if (IsEmpty(itemId))
+        if (string.IsNullOrWhiteSpace(itemId))
         {
-            _logger.LogEmptyIdentifier();
+            logger.LogEmptyIdentifier();
             return 0;
         }
 
-        double? score = await _db.SortedSetScoreAsync(_popularityKey, itemId.ToString());
+        double? score = await _db.SortedSetScoreAsync(_popularityKey, itemId);
         return (long)(score ?? 0);
     }
 
-    public async Task<IReadOnlyList<Guid>> GetTopPopularItemIdsAsync(int count, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<string>> GetTopPopularItemIdsAsync(
+        int count,
+        CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
+
+        if (count <= 0)
+        {
+            return [];
+        }
 
         try
         {
@@ -84,65 +88,77 @@ public sealed class RedisRecommendationCacheService(
                 order: Order.Descending
             );
 
-            var membersToGuid = members
-                .Select(m => Guid.TryParse(m.ToString(), out var id) ? id : (Guid?)null)
-                .Where(id => id.HasValue)
-                .Select(id => id!.Value)
-                .ToList();
+            var result = new List<string>(members.Length);
+            foreach (var m in members)
+            {
+                if (!m.IsNullOrEmpty)
+                {
+                    result.Add(m.ToString());
+                }
+            }
 
-            return membersToGuid.AsReadOnly();
+            return result;
         }
         catch (Exception ex)
         {
-            _logger.LogPopularityRetrievalFailed(ex);
+            logger.LogPopularityRetrievalFailed(ex);
             return [];
         }
     }
 
-    public async Task<double> IncrementItemPopularityAsync(Guid itemId, double score = 1, CancellationToken cancellationToken = default)
+    public async Task<double> IncrementItemPopularityAsync(
+        string itemId,
+        double score = 1,
+        CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        if (IsEmpty(itemId))
+        if (string.IsNullOrWhiteSpace(itemId))
         {
-            _logger.LogEmptyIdentifier();
+            logger.LogEmptyIdentifier();
             return 0;
         }
 
-        double result = await _db.SortedSetIncrementAsync(_popularityKey, itemId.ToString(), score);
-        _logger.LogPopularityIncremented(itemId, score, result);
+        double result = await _db.SortedSetIncrementAsync(_popularityKey, itemId, score);
+        logger.LogPopularityIncremented(itemId, score, result);
         return result;
     }
 
-    public async Task InvalidateUserCacheAsync(Guid userId, CancellationToken cancellationToken = default)
+    public async Task InvalidateUserCacheAsync(
+        string userId,
+        CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        if (IsEmpty(userId))
+        if (string.IsNullOrWhiteSpace(userId))
         {
-            _logger.LogEmptyIdentifier();
+            logger.LogEmptyIdentifier();
             return;
         }
 
         string key = $"{_userCachePrefix}{userId}";
 
         await _db.KeyDeleteAsync(key);
-        _logger.LogCacheInvalidated(userId);
+        logger.LogCacheInvalidated(userId);
     }
 
-    public async Task SetCachedRecommendationsAsync(Guid userId, IReadOnlyList<RankedResult> recommendations, TimeSpan? expiry = null, CancellationToken cancellationToken = default)
+    public async Task SetCachedRecommendationsAsync(
+        string userId,
+        IReadOnlyList<RankedResult> recommendations,
+        TimeSpan? expiry = null,
+        CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        if (IsEmpty(userId))
+        if (string.IsNullOrWhiteSpace(userId))
         {
-            _logger.LogEmptyIdentifier();
+            logger.LogEmptyIdentifier();
             return;
         }
 
         if (recommendations is null)
         {
-            _logger.LogNullRecommendations(userId);
+            logger.LogNullRecommendations(userId);
             return;
         }
 
@@ -153,11 +169,11 @@ public sealed class RedisRecommendationCacheService(
 
             string key = $"{_userCachePrefix}{userId}";
             await _db.StringSetAsync(key, json, ttl);
-            _logger.LogRecommendationsCached(recommendations.Count, userId, ttl);
+            logger.LogRecommendationsCached(recommendations.Count, userId, ttl);
         }
         catch (JsonException ex)
         {
-            _logger.LogSerializationFailed(userId, ex);
+            logger.LogSerializationFailed(userId, ex);
         }
     }
 }

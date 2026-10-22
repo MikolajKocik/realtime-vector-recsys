@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
 using RecSys.Application.Abstractions;
+using RecSys.Infrastructure.BackgroundJobs;
 using RecSys.Infrastructure.Caching;
 using RecSys.Infrastructure.Messaging;
 using RecSys.Infrastructure.Persistence;
@@ -60,6 +61,7 @@ public static class DependencyInjection
             return ConnectionMultiplexer.Connect(opt.ConnectionString);
         });
         services.AddSingleton<IRecommendationCacheService, RedisRecommendationCacheService>();
+        services.AddHostedService<TasteProfileWorker>();
 
         return services;
     }

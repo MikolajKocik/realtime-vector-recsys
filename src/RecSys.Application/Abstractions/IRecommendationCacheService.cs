@@ -8,29 +8,29 @@ namespace RecSys.Application.Abstractions;
 public interface IRecommendationCacheService
 {
     Task<IReadOnlyList<RankedResult>?> GetCachedRecommendationsAsync(
-        Guid userId,
+        string userId,
         CancellationToken cancellationToken = default);
 
     Task SetCachedRecommendationsAsync(
-        Guid userId,
+        string userId,
         IReadOnlyList<RankedResult> recommendations,
         TimeSpan? expiry = null,
         CancellationToken cancellationToken = default);
 
     Task InvalidateUserCacheAsync(
-        Guid userId,
+        string userId,
         CancellationToken cancellationToken = default);
 
     Task<double> IncrementItemPopularityAsync(
-        Guid itemId,
+        string itemId,
         double score = 1.0,
         CancellationToken cancellationToken = default);
 
     Task<long> GetItemPopularityAsync(
-        Guid itemId,
+        string itemId,
         CancellationToken cancellationToken = default);
 
-    Task<IReadOnlyList<Guid>> GetTopPopularItemIdsAsync(
+    Task<IReadOnlyList<string>> GetTopPopularItemIdsAsync(
         int count,
         CancellationToken cancellationToken = default);
 }
