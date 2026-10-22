@@ -1,6 +1,8 @@
+using Microsoft.EntityFrameworkCore;
 using RecSys.Api.Endpoints;
 using RecSys.Application;
 using RecSys.Infrastructure;
+using RecSys.Infrastructure.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -35,6 +37,18 @@ app.UseHttpsRedirection();
 // Register Minimal API Endpoints
 app.MapTelemetryEndpoints();
 app.MapRecommendationEndpoints();
+
+await using (var scope = app.Services.CreateAsyncScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    await dbContext.Database.MigrateAsync();
+
+    if (!await dbContext.CatalogItems.AnyAsync())
+    {
+        string seedSql = await File.ReadAllTextAsync("seed.sql");
+        await dbContext.Database.ExecuteSqlRawAsync(seedSql);
+    }
+}
 
 await app.RunAsync();
 
