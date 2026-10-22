@@ -7,6 +7,15 @@ namespace RecSys.Application.Abstractions;
 /// </summary>
 public interface IRecommendationRanker
 {
+    /// <summary>
+    /// Re-ranks candidates by combining cosine similarity, logarithmic popularity, and category diversity penalty.
+    /// </summary>
+    /// <param name="candidates">Raw candidate items retrieved from the first retrieval stage (e.g. HNSW).</param>
+    /// <param name="topK">The number of items to return in the final recommendation list.</param>
+    /// <param name="similarityWeight">Weight assigned to the user taste vector similarity (0.0 to 1.0).</param>
+    /// <param name="popularityWeight">Weight assigned to normalized item popularity (0.0 to 1.0).</param>
+    /// <param name="categoryPenaltyStep">Penalty subtracted for each already selected item of the same category.</param>
+    /// <returns>A top-K sorted list of ranked recommendation results.</returns>
     IReadOnlyList<RankedResult> Rank(
         IEnumerable<CandidateItem> candidates,
         int topK = 5,
