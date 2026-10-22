@@ -1,46 +1,45 @@
-# Vector Recommendation Engine
+# realtime-vector-recsys
 
-High-performance, real-time personalized recommendation engine built on .NET, PostgreSQL with pgvector, Redis, and RabbitMQ. The system implements a two-stage recommendation funnel (Retrieval and Re-ranking) combined with an asynchronous feedback loop that dynamically shifts user taste profiles in vector space using SIMD operations.
+Real-time vector recommendation system built on .NET, PostgreSQL with pgvector, Redis, and RabbitMQ. The project implements a two-stage recommendation funnel (retrieval and re-ranking) for low-latency personalization and continuous taste adaptation.
 
 ---
 
 ## Architecture & System Design
 
-The architecture decouples query and command workloads using CQRS. Reads are optimized for low-latency retrieval and caching, while writes (telemetry and user interactions) are processed asynchronously in the background.
+The architecture decouples query and command workloads using CQRS. Reads are optimized for low-latency retrieval and caching, while writes (telemetry and user interactions) are processed asynchronously to update user taste profiles and invalidate stale recommendations.
 
 ```mermaid
 flowchart LR
-    Client([Client / Frontend])
+    Client["Client / Frontend"]
 
-    subgraph ReadPath ["Read Pipeline (CQRS Query)"]
+    subgraph ReadPath["Read Pipeline (CQRS Query)"]
         direction LR
         RecEndpoint["GET /api/v1/recommendations"]
-        RedisCache{Redis Cache}
+        RedisCache{"Redis Cache"}
         HNSW["Stage 1: Retrieval<br/>pgvector HNSW (Top 50, <5ms)"]
         Ranker["Stage 2: Re-ranking & Scoring<br/>SIMD Ranker + Diversity Penalty"]
-        
-        RecEndpoint --> RedisCache
-        RedisCache -->|"Hit (< 1 ms)"| RecEndpoint
-        RedisCache -->|Miss| HNSW
-        HNSW -->|"50 Candidates"| Ranker
-        Ranker -->|"Cache Top 5"| RedisCache
     end
 
-    subgraph WritePath ["Write Pipeline (Telemetry & Feedback Loop)"]
+    subgraph WritePath["Write Pipeline (Telemetry & Feedback Loop)"]
         direction LR
         Telemetry["POST /api/v1/telemetry"]
-        Broker[(RabbitMQ / Outbox)]
-        Worker[TasteProfileWorker]
-        Postgres[(PostgreSQL: UserProfiles)]
-        
-        Telemetry --> Broker --> Worker
-        Worker -->|"Vector Drift (SIMD)"| Postgres
-        Worker -->|"Invalidate"| RedisCache
+        Broker[("RabbitMQ / Outbox")]
+        Worker["TasteProfileWorker"]
+        Postgres[("PostgreSQL: UserProfiles")]
     end
 
     Client -->|"Request Top 5"| RecEndpoint
+    RecEndpoint --> RedisCache
+    RedisCache -->|"Hit (< 1 ms)"| RecEndpoint
+    RedisCache -->|"Miss"| HNSW
+    HNSW -->|"50 Candidates"| Ranker
+    Ranker -->|"Cache Top 5"| RedisCache
     RecEndpoint -->|"200 OK (Ranked DTO)"| Client
+
     Client -.->|"Track Interaction (Click/Fav)"| Telemetry
+    Telemetry --> Broker --> Worker
+    Worker -->|"Vector Drift (SIMD)"| Postgres
+    Worker -->|"Invalidate"| RedisCache
 ```
 
 ---
@@ -120,7 +119,8 @@ When a user has no prior interaction history (`UserTasteProfile` is null):
 │   └── RecSys.Application.Tests/   # Unit tests covering ranking, diversity, and vector math
 │
 ├── docker-compose.yml              # PostgreSQL with pgvector, Redis, and RabbitMQ
-└── seed.sql                        # Normalized 3D catalog dataset for testing
+├── seed.sql                        # Normalized 3D catalog dataset for testing
+└── README.md                       # Project overview and architecture
 ```
 
 ---
