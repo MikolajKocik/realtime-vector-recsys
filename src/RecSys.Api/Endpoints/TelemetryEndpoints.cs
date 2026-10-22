@@ -1,3 +1,4 @@
+using Asp.Versioning;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using RecSys.Api.Extensions;
@@ -9,10 +10,17 @@ namespace RecSys.Api.Endpoints;
 
 public static class TelemetryEndpoints
 {
-
     public static IEndpointRouteBuilder MapTelemetryEndpoints(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("/api/telemetry").WithTags("Telemetry");
+        var versionSet = app.NewApiVersionSet()
+            .HasApiVersion(new ApiVersion(1, 0))
+            .ReportApiVersions()
+            .Build();
+
+        var group = app.MapGroup("/api/v{version:apiVersion}/telemetry")
+            .WithApiVersionSet(versionSet)
+            .MapToApiVersion(new ApiVersion(1, 0))
+            .WithTags("Telemetry");
 
         group.MapPost("/interaction", async (
             [FromBody] TrackInteractionRequest request,

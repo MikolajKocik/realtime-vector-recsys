@@ -1,3 +1,4 @@
+using Asp.Versioning;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using RecSys.Api.Extensions;
@@ -11,7 +12,15 @@ public static class RecommendationEndpoints
 {
     public static IEndpointRouteBuilder MapRecommendationEndpoints(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("/api/recommendations").WithTags("Recommendations");
+        var versionSet = app.NewApiVersionSet()
+            .HasApiVersion(new ApiVersion(1, 0))
+            .ReportApiVersions()
+            .Build();
+
+        var group = app.MapGroup("/api/v{version:apiVersion}/recommendations")
+            .WithApiVersionSet(versionSet)
+            .MapToApiVersion(new ApiVersion(1, 0))
+            .WithTags("Recommendations");
 
         group.MapGet("/{userId}", async (
             string userId,
