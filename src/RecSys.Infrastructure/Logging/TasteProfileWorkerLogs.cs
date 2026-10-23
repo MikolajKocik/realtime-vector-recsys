@@ -1,7 +1,10 @@
 using Microsoft.Extensions.Logging;
 
-namespace RecSys.Infrastructure.BackgroundJobs;
+namespace RecSys.Infrastructure.Logging;
 
+/// <summary>
+/// Source-generated high-performance log messages for TasteProfileWorker operations.
+/// </summary>
 internal static partial class TasteProfileWorkerLogs
 {
     [LoggerMessage(EventId = 1, Level = LogLevel.Information, Message = "[WORKER] TasteProfileWorker started listening for interactions.")]

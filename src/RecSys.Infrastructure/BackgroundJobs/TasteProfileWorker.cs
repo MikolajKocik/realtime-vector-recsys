@@ -6,6 +6,7 @@ using RecSys.Application.Abstractions;
 using RecSys.Application.Features.Telemetry;
 using RecSys.Domain.Entities;
 using RecSys.Domain.Rules;
+using RecSys.Infrastructure.Logging;
 using RecSys.Infrastructure.Persistence;
 
 namespace RecSys.Infrastructure.BackgroundJobs;
