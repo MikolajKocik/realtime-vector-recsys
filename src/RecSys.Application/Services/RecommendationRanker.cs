@@ -81,7 +81,8 @@ public sealed class RecommendationRanker : IRecommendationRanker
             categoryCounts[bestCandidate.Category] =
                 categoryCounts.GetValueOrDefault(bestCandidate.Category) + 1;
 
-            candidateList.RemoveAt(bestIndex);
+            candidateList[bestIndex] = candidateList[^1];
+            candidateList.RemoveAt(candidateList.Count - 1);
         }
 
         return rankedResults;
